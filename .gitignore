@@ -75,3 +75,4 @@ fabric.properties
 HotwireApplication/bin
 HotwireApplication/obj
 
+node_modules
