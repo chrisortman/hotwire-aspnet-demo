@@ -1,0 +1,28 @@
+@model List<Todo>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Todos are great</title>
+</head>
+<body>
+<div>
+    <ul>
+    @foreach (var todo in Model)
+    {
+        <li>
+            <div>
+                <input type="checkbox" checked="@todo.Completed" />
+                @todo.Item
+            </div>
+        </li>
+    }
+    </ul>
+</div>
+</body>
+</html>
