@@ -58,7 +58,7 @@ namespace HotwireApplication
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=PerceivedPageSpeed}/{action=Index}/{id?}");
             });
         }
     }

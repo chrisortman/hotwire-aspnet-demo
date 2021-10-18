@@ -5,21 +5,46 @@ using HotwireApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 
 namespace HotwireApplication.Controllers
 {
     public class NameController : Controller
     {
+
+        private readonly TodoContext _context;
+
+        public NameController(TodoContext context)
+        {
+            _context = context;
+        }
+
         // GET
         [Route("/names", Name = "Names")]
         [HttpGet]
-        public ActionResult<NameModel> New()
+        public ActionResult<NamesListModel> Index()
         {
 
-            return View(new NameModel());
+            var namesModel = new NamesListModel()
+            {
+                Names = _context.Names.Select(x => new NameModel()
+                {
+                    Firstname = x.First,
+                    Lastname = x.Last
+                }).ToList()
+            };
+
+            return View(namesModel);
         }
 
+        [Route("/names/new", Name = "NewName")]
+        [HttpGet]
+        public ActionResult<NameModel> New()
+        {
+            return View(new NameModel());
+        }
+        
         [Route("/names")]
         [HttpPost]
         public IActionResult Create([FromForm] NameModel nameModel)
@@ -36,11 +61,31 @@ namespace HotwireApplication.Controllers
             }
             else
             {
+                var name = new Name()
+                {
+                    First = nameModel.Firstname,
+                    Last = nameModel.Lastname
+                };
+
+                _context.Names.Add(name);
+                _context.SaveChanges();
+                
                 TempData.Add("Notice", "Name registered successfully!");
-                var result = RedirectToAction("New");
+                var result = RedirectToAction("Index");
                 if (TurboRequest)
                 {
-                    return new TurboRedirectResult(result);
+
+                    // var turboRedirect = new TurboRedirectResult(result);
+                    // return turboRedirect;
+                    
+                    var turboResponse = PartialView("_TurboCreate", new NameModel()
+                    {
+                        Firstname = name.First,
+                        Lastname = name.Last
+                    });
+                    
+                    turboResponse.ContentType = "text/vnd.turbo-stream.html; charset=utf-8";
+                    return turboResponse;
                 }
                 else
                 {
