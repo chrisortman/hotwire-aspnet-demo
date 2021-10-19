@@ -1,10 +1,12 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using HotwireApplication.Hubs;
 using HotwireApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 
@@ -14,10 +16,12 @@ namespace HotwireApplication.Controllers
     {
 
         private readonly TodoContext _context;
-
-        public NameController(TodoContext context)
+        private readonly IHubContext<StreamsHub> _hubContext;
+        
+        public NameController(TodoContext context, IHubContext<StreamsHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET
@@ -47,7 +51,7 @@ namespace HotwireApplication.Controllers
         
         [Route("/names")]
         [HttpPost]
-        public IActionResult Create([FromForm] NameModel nameModel)
+        public async Task<IActionResult> Create([FromForm] NameModel nameModel)
         {
             if (!ModelState.IsValid)
             {
@@ -68,7 +72,10 @@ namespace HotwireApplication.Controllers
                 };
 
                 _context.Names.Add(name);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", "poop",
+                    "<turbo-stream action='append' target='messagesList'><template><h1>HI</h1></template></turbo-stream>");
                 
                 TempData.Add("Notice", "Name registered successfully!");
                 var result = RedirectToAction("Index");

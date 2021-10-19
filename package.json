@@ -14,6 +14,7 @@
     "@tailwindcss/typography": "^0.4.1"
   },
   "devDependencies": {
+    "@microsoft/signalr": "^5.0.11",
     "tailwindcss": "^2.2.17"
   }
 }

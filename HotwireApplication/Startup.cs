@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotwireApplication.Hubs;
 using HotwireApplication.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,7 @@ namespace HotwireApplication
                 options.UseNpgsql(Configuration.GetConnectionString("TodoContext")));
 
             services.AddDataProtection();
+            services.AddSignalR();
             services.AddControllersWithViews().AddRazorRuntimeCompilation();
         }
 
@@ -56,6 +58,7 @@ namespace HotwireApplication
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<StreamsHub>("turbo_streams");
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=PerceivedPageSpeed}/{action=Index}/{id?}");
