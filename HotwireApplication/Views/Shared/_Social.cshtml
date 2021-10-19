@@ -20,10 +20,13 @@
     <script type="module">
       import { connectStreamSource, disconnectStreamSource} from '@("https://cdn.skypack.dev/@hotwired/turbo")';
       async function connectToHub(hubPath, { received }) {
-        var connection = new signalR.HubConnectionBuilder().withUrl(hubPath).build();
+        var connection = new signalR.HubConnectionBuilder()
+          .withUrl(hubPath)
+          .configureLogging(signalR.LogLevel.Information)
+          .build();
         
-        connection.on("ReceiveMessage", function (user, message) {
-          console.log("Got a message", user,  message);
+        connection.on("TurboBroadcast", function (message) {
+          console.log("Got a message", message);
           received(message);
         });
         
@@ -43,11 +46,10 @@
           });
           console.log("CONNECTED CALLBACK");
         }
-        
-        disconnectedCallback() {
+        async disconnectedCallback() {
           console.log("Ufortunnately i must leave you");
           disconnectStreamSource(this);
-          this.connection.stop();
+          if (this.connection) await this.connection.stop();
         }
         
         dispatchMessageEvent(data) {
@@ -60,7 +62,7 @@
     </script>
 </head>
 <body data-turbo="true">
-<turbo-cable-stream-source></turbo-cable-stream-source>
+<turbo-cable-stream-source id="notification_stream"></turbo-cable-stream-source>
 <div class="relative min-h-screen bg-gray-100">
 <!--
 When the mobile menu is open, add `overflow-hidden` to the `body` element to prevent double scrollbars
@@ -323,7 +325,7 @@ Menu open: "fixed inset-0 z-40 overflow-y-auto", Menu closed: ""
   </nav>
 </div>
 <main class="lg:col-span-9 xl:col-span-6">
-
+  <!--
   <div>
     <div class="container border-2 border-black">
       <div class="row">&nbsp;</div>
@@ -353,7 +355,8 @@ Menu open: "fixed inset-0 z-40 overflow-y-auto", Menu closed: ""
       </div>
     </div>
   </div>
-
+  -->
+  
   @RenderBody()
 </main>
 <aside class="hidden xl:block xl:col-span-4">

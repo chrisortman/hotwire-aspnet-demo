@@ -1,13 +1,22 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using HotwireApplication.Hubs;
 using HotwireApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
 namespace HotwireApplication.Controllers
@@ -74,10 +83,17 @@ namespace HotwireApplication.Controllers
                 _context.Names.Add(name);
                 await _context.SaveChangesAsync();
 
-                await _hubContext.Clients.All.SendAsync("ReceiveMessage", "poop",
-                    "<turbo-stream action='append' target='messagesList'><template><h1>HI</h1></template></turbo-stream>");
+                // await _hubContext.Clients.All.SendAsync("ReceiveMessage", "poop",
+                //     "<turbo-stream action='before' target='nameform'><template><h1>HI</h1></template></turbo-stream>");
+
+                // TempData.Add("Notice", "Name registered successfully!");
+                var notification = await RenderViewComponent("Notification",new {
+                    message = "Name registered successfully!",
+                });
+                var turboStream = await TurboStream("before", "nameform", () => notification);
                 
-                TempData.Add("Notice", "Name registered successfully!");
+                _hubContext.Clients.All.SendAsync("TurboBroadcast", turboStream);
+                
                 var result = RedirectToAction("Index");
                 if (TurboRequest)
                 {
@@ -117,8 +133,59 @@ namespace HotwireApplication.Controllers
                 return acceptHeaders.Contains("text/vnd.turbo-stream.html");
             }
         }
-    }
 
+        private async Task<string> TurboStream(string action, string target, Func<String> body)
+        {
+            
+            string html = $@"
+<turbo-stream action='{action}' target='{target}'>
+    <template>
+        {body()}
+    </template>            
+</turbo-stream>
+            ";
+            return html.Replace("\n","");
+        }
+        
+        public async Task<string> RenderViewComponent(string viewComponent, object args)
+        {
+            var sp = HttpContext.RequestServices;
+            
+            var helper = new DefaultViewComponentHelper(
+                sp.GetRequiredService<IViewComponentDescriptorCollectionProvider>(),
+                HtmlEncoder.Default,
+                sp.GetRequiredService<IViewComponentSelector>(),
+                sp.GetRequiredService<IViewComponentInvokerFactory>(),
+                sp.GetRequiredService<IViewBufferScope>());
+        
+            using (var writer = new StringWriter())
+            {
+                var context = new ViewContext(ControllerContext, NullView.Instance, ViewData, TempData, writer, new HtmlHelperOptions());
+                helper.Contextualize(context);
+                var result = await helper.InvokeAsync(viewComponent, args);
+                result.WriteTo(writer, HtmlEncoder.Default);
+                await writer.FlushAsync();
+                return writer.ToString();
+            }
+        }
+        
+    }
+    public class NullView : IView
+    {
+        public static readonly NullView Instance = new NullView();
+
+        public string Path => string.Empty;
+
+        public Task RenderAsync(ViewContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            return Task.CompletedTask;
+        }
+    }
     class TurboRedirectResult : IActionResult
     {
         private readonly RedirectToActionResult _regularRedirect;

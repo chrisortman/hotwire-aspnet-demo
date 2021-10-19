@@ -6,11 +6,6 @@
 }
 <div class="w-full">
   
-    
-  @if (TempData.ContainsKey("Notice"))
-  {
-     <partial name="_Notice" model="@TempData["Notice"]" />
-  }
   <turbo-frame id="nameform">
    
     @if (Model.Names.Count == 0)
