@@ -12,6 +12,25 @@
       
        */
     </script>
+     <script type="module">
+        import { Application, Controller } from '@("https://cdn.skypack.dev/@hotwired/stimulus")';
+        window.Stimulus = Application.start()
+        window.Stimulus.register("dismissable", class extends Controller {
+          static targets = ["button"];
+          
+          remove() {
+            this.element.remove();
+          }
+        });
+        
+        window.Stimulus.register("hello", class extends Controller {
+          static targets = [ "name" ]
+    
+          connect() {
+            console.log("YOOO");
+          }
+        })
+      </script>
     <script src="~/js/signalr.js"> </script>
     <script>
       document.addEventListener('xxturbo:load', async (event) => {
@@ -436,7 +455,7 @@ Menu open: "fixed inset-0 z-40 overflow-y-auto", Menu closed: ""
               <!-- More posts... -->
             </ul>
           </div>
-          <div class="mt-6">
+          <div class="mt-6" data-controller="hello">
             <a href="#" class="w-full block text-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
               View all
             </a>
