@@ -4,6 +4,9 @@
     <option name="PROGRAM_PARAMETERS" value="watch run" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/HotwireApplication" />
     <option name="PASS_PARENT_ENVS" value="1" />
+    <envs>
+      <env name="DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH" value="1" />
+    </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <method v="2">
       <option name="Build Solution" enabled="true" />

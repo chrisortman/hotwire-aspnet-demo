@@ -1,0 +1,33 @@
+@model NameModel
+
+@{
+    ViewBag.Title = "Names List";
+    Layout = "_Social";
+}
+
+
+<div id="simple-post-form">
+    <form method="POST" action="@Url.RouteUrl("Names")" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+
+        <div class="mb-4">
+            <label for="firstname" class="block text-gray-700 text-sm font-bold mb-2">First Name</label>
+            <input type="text" asp-for="Firstname" id="firstname" name="firstname" value="" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+        </div>
+
+        <!-- Really ASP.net if I use a self closing tag here and don't include
+        a class attribute you're going to silently render nothing?
+        I guess I should RTFM but sheesh -->
+        <span asp-validation-for="Firstname" class="block mt-2 text-sm text-red-600">
+        </span>
+
+        <div class="mb-4">
+            <label for="lastname" class="block text-gray-700 text-sm font-bold mb-2">Last Name</label>
+            <input type="text" asp-for="Lastname" id="lastname" name="lastname" value="" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+        </div>
+
+        <span asp-validation-for="Lastname" class="block mt-2 text-sm text-red-600">
+        </span>
+
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+    </form>
+</div>

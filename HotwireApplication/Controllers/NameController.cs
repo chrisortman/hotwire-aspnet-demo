@@ -26,6 +26,9 @@ namespace HotwireApplication.Controllers
 
         private readonly TodoContext _context;
         private readonly IHubContext<StreamsHub> _hubContext;
+
+        private bool useFrames = false;
+        private bool pretendYouDontKnowAboutTurbo = true;
         
         public NameController(TodoContext context, IHubContext<StreamsHub> hubContext)
         {
@@ -48,23 +51,41 @@ namespace HotwireApplication.Controllers
                 }).ToList()
             };
 
-            return View(namesModel);
+            if (useFrames)
+            {
+                return View(namesModel);
+            }
+            else
+            {
+                return View("IndexNoFrame", namesModel);
+            }
         }
 
         [Route("/names/new", Name = "NewName")]
         [HttpGet]
         public ActionResult<NameModel> New()
         {
-            return View(new NameModel());
+            return NewView(new NameModel());
         }
-        
+
+        private ViewResult NewView(NameModel nameModel)
+        {
+            if (useFrames)
+            {
+                return View(nameModel);
+            }
+            else
+            {
+                return View("NewNoFrame", nameModel);
+            }
+        }
         [Route("/names")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] NameModel nameModel)
         {
             if (!ModelState.IsValid)
             {
-                var result = View("New", nameModel);
+                var result = NewView(nameModel);
                 if (TurboRequest)
                 {
                     result.StatusCode = (int) HttpStatusCode.UnprocessableEntity;
@@ -83,10 +104,6 @@ namespace HotwireApplication.Controllers
                 _context.Names.Add(name);
                 await _context.SaveChangesAsync();
 
-                // await _hubContext.Clients.All.SendAsync("ReceiveMessage", "poop",
-                //     "<turbo-stream action='before' target='nameform'><template><h1>HI</h1></template></turbo-stream>");
-
-                // TempData.Add("Notice", "Name registered successfully!");
                 var notification = await RenderViewComponent("Notification",new {
                     message = "Name registered successfully!",
                 });
@@ -98,17 +115,18 @@ namespace HotwireApplication.Controllers
                 if (TurboRequest)
                 {
 
-                    // var turboRedirect = new TurboRedirectResult(result);
-                    // return turboRedirect;
+                    /* When we're not inside a frame we may want to redirect */
+                    var turboRedirect = new TurboRedirectResult(result);
+                    return turboRedirect;
                     
-                    var turboResponse = PartialView("_TurboCreate", new NameModel()
-                    {
-                        Firstname = name.First,
-                        Lastname = name.Last
-                    });
-                    
-                    turboResponse.ContentType = "text/vnd.turbo-stream.html; charset=utf-8";
-                    return turboResponse;
+                    // var turboResponse = PartialView("_TurboCreate", new NameModel()
+                    // {
+                    //     Firstname = name.First,
+                    //     Lastname = name.Last
+                    // });
+                    //
+                    // turboResponse.ContentType = "text/vnd.turbo-stream.html; charset=utf-8";
+                    // return turboResponse;
                 }
                 else
                 {
@@ -121,11 +139,8 @@ namespace HotwireApplication.Controllers
         {
             get
             {
-                // var accepts = 
-                //     from header in this.Request.Headers["Accept"]
-                //     from preference in header.Split(",")
-                //     select preference.TrimEnd(',');
-                              
+
+                if (pretendYouDontKnowAboutTurbo) return false;
                                 
                 var acceptHeaders = Request.Headers["Accept"]
                                         .SelectMany(x => x.Split(','))
