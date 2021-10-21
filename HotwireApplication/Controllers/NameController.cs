@@ -27,8 +27,8 @@ namespace HotwireApplication.Controllers
         private readonly TodoContext _context;
         private readonly IHubContext<StreamsHub> _hubContext;
 
-        private bool useFrames = false;
-        private bool pretendYouDontKnowAboutTurbo = true;
+        private bool useFrames = true;
+        private bool pretendYouDontKnowAboutTurbo = false;
         
         public NameController(TodoContext context, IHubContext<StreamsHub> hubContext)
         {
@@ -116,17 +116,17 @@ namespace HotwireApplication.Controllers
                 {
 
                     /* When we're not inside a frame we may want to redirect */
-                    var turboRedirect = new TurboRedirectResult(result);
-                    return turboRedirect;
+                    // var turboRedirect = new TurboRedirectResult(result);
+                    // return turboRedirect;
                     
-                    // var turboResponse = PartialView("_TurboCreate", new NameModel()
-                    // {
-                    //     Firstname = name.First,
-                    //     Lastname = name.Last
-                    // });
-                    //
-                    // turboResponse.ContentType = "text/vnd.turbo-stream.html; charset=utf-8";
-                    // return turboResponse;
+                    var turboResponse = PartialView("_TurboCreate", new NameModel()
+                    {
+                        Firstname = name.First,
+                        Lastname = name.Last
+                    });
+                    
+                    turboResponse.ContentType = "text/vnd.turbo-stream.html; charset=utf-8";
+                    return turboResponse;
                 }
                 else
                 {
