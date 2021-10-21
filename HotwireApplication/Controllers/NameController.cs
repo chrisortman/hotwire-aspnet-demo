@@ -72,7 +72,7 @@ namespace HotwireApplication.Controllers
         {
             if (useFrames)
             {
-                return View(nameModel);
+                return View("New", nameModel);
             }
             else
             {
